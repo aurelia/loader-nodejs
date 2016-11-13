@@ -1,0 +1,47 @@
+{
+  "name": "aurelia-loader-node",
+  "version": "1.0.0",
+  "description": "An implementation of Aurelia's loader interface to enable execution under node.",
+  "keywords": [
+    "aurelia",
+    "node",
+    "loader"
+  ],
+  "homepage": "http://aurelia.io",
+  "bugs": {
+    "url": "https://github.com/aurelia/loader-node/issues"
+  },
+  "license": "MIT",
+  "author": "Bazyli Brzóska <bazyli.brzoska@gmail.com> (https://invent.life/)",
+  "main": "dist/commonjs/aurelia-loader-node.js",
+  "typings": "dist/commonjs/aurelia-loader-node.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/aurelia/loader-node"
+  },
+  "scripts": {
+    "build:compile": "aurelia-tools ts-build-all --continue-when-failed --clean-before",
+    "build": "npm run build:compile",
+    "postbuild": "npm run build:doc",
+    "prebuild:doc": "aurelia-tools doc-build --continue-when-failed",
+    "build:doc": "aurelia-tools doc-shape-defs && aurelia-tools typedoc",
+    "postbuild:doc": "aurelia-tools doc-jsonshape",
+    "release": "aurelia-tools changelog"
+  },
+  "dependencies": {
+    "aurelia-loader": "^1.0.0",
+    "aurelia-metadata": "^1.0.2",
+    "aurelia-pal": "^1.0.0",
+    "aurelia-path": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^6.0.46",
+    "aurelia-tools": "aurelia/tools#cli",
+    "typescript": "^2.1.0"
+  },
+  "aurelia": {
+    "documentation": {
+      "articles": []
+    }
+  }
+}
