@@ -38,8 +38,35 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "aurelia-metadata", "aurelia-loader", "aurelia-pal", "path"], function (require, exports, aurelia_metadata_1, aurelia_loader_1, aurelia_pal_1, path) {
+define(["require", "exports", "aurelia-metadata", "aurelia-loader", "aurelia-pal", "path", "fs", "debug"], function (require, exports, aurelia_metadata_1, aurelia_loader_1, aurelia_pal_1, path, fs, debug) {
     "use strict";
+    var log = debug('aurelia-loader-nodejs');
+    function TextHandler(filePath) {
+        return new Promise(function (resolve, reject) {
+            return fs.readFile(filePath, 'utf-8', function (err, text) { return err ? reject(err) : resolve(text); });
+        });
+    }
+    exports.TextHandler = TextHandler;
+    exports.Options = {
+        relativeToDir: require.main && require.main.filename && path.dirname(require.main.filename) || undefined
+    };
+    exports.ExtensionHandlers = {
+        '.css': TextHandler,
+        '.html': TextHandler
+    };
+    function advancedRequire(filePath) {
+        var extensionsWithHandlers = Object.keys(exports.ExtensionHandlers);
+        for (var _i = 0, extensionsWithHandlers_1 = extensionsWithHandlers; _i < extensionsWithHandlers_1.length; _i++) {
+            var extension = extensionsWithHandlers_1[_i];
+            if (filePath.endsWith(extension)) {
+                log("Requiring: " + filePath, "Extension handler: " + extension);
+                return exports.ExtensionHandlers[extension](filePath);
+            }
+        }
+        log("Requiring: " + filePath);
+        return Promise.resolve(require(filePath));
+    }
+    exports.advancedRequire = advancedRequire;
     /**
     * An implementation of the TemplateLoader interface implemented with text-based loading.
     */
@@ -111,13 +138,16 @@ define(["require", "exports", "aurelia-metadata", "aurelia-loader", "aurelia-pal
         }
         WebpackLoader.prototype._import = function (moduleId) {
             return __awaiter(this, void 0, void 0, function () {
-                var moduleIdParts, modulePath, loaderPlugin, plugin, splitModuleId, rootModuleId, rootResolved, mainDir, remainingRequest;
+                var moduleIdParts, modulePath, loaderPlugin, plugin, firstError_1, splitModuleId, rootModuleId, remainingRequest, rootResolved, mainDir, mergedPath, e_1;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             moduleIdParts = moduleId.split('!');
                             modulePath = moduleIdParts.splice(moduleIdParts.length - 1, 1)[0];
                             loaderPlugin = moduleIdParts.length === 1 ? moduleIdParts[0] : null;
+                            if (modulePath[0] === '.' && exports.Options.relativeToDir) {
+                                modulePath = path.resolve(exports.Options.relativeToDir, modulePath);
+                            }
                             if (!loaderPlugin)
                                 return [3 /*break*/, 2];
                             plugin = this.loaderPlugins[loaderPlugin];
@@ -127,21 +157,38 @@ define(["require", "exports", "aurelia-metadata", "aurelia-loader", "aurelia-pal
                             return [4 /*yield*/, plugin.fetch(modulePath)];
                         case 1: return [2 /*return*/, _a.sent()];
                         case 2:
-                            try {
-                                return [2 /*return*/, require(modulePath)];
+                            _a.trys.push([2, 4, , 11]);
+                            return [4 /*yield*/, advancedRequire(require.resolve(modulePath))];
+                        case 3: return [2 /*return*/, _a.sent()];
+                        case 4:
+                            firstError_1 = _a.sent();
+                            splitModuleId = modulePath.split('/');
+                            rootModuleId = splitModuleId[0];
+                            if (rootModuleId[0] === '@') {
+                                rootModuleId = splitModuleId.slice(0, 2).join('/');
                             }
-                            catch (_) {
-                                splitModuleId = modulePath.split('/');
-                                rootModuleId = splitModuleId[0];
-                                if (rootModuleId[0] === '@') {
-                                    rootModuleId = splitModuleId.slice(0, 2).join('/');
-                                }
-                                rootResolved = require.resolve(rootModuleId);
-                                mainDir = path.dirname(rootResolved);
-                                remainingRequest = splitModuleId.slice(rootModuleId[0] === '@' ? 2 : 1).join('/');
-                                return [2 /*return*/, require(path.join(mainDir, remainingRequest))];
+                            remainingRequest = splitModuleId.slice(rootModuleId[0] === '@' ? 2 : 1).join('/');
+                            _a.label = 5;
+                        case 5:
+                            _a.trys.push([5, 7, , 10]);
+                            if (!remainingRequest) {
+                                throw firstError_1;
                             }
-                            return [2 /*return*/];
+                            rootResolved = require.resolve(rootModuleId);
+                            mainDir = path.dirname(rootResolved);
+                            mergedPath = path.join(mainDir, remainingRequest);
+                            return [4 /*yield*/, advancedRequire(mergedPath)];
+                        case 6: return [2 /*return*/, _a.sent()];
+                        case 7:
+                            e_1 = _a.sent();
+                            if (!!path.isAbsolute(modulePath))
+                                return [3 /*break*/, 9];
+                            modulePath = path.resolve(exports.Options.relativeToDir, modulePath);
+                            return [4 /*yield*/, advancedRequire(modulePath)];
+                        case 8: return [2 /*return*/, _a.sent()];
+                        case 9: throw firstError_1;
+                        case 10: return [3 /*break*/, 11];
+                        case 11: return [2 /*return*/];
                     }
                 });
             });
@@ -193,6 +240,7 @@ define(["require", "exports", "aurelia-metadata", "aurelia-loader", "aurelia-pal
         */
         WebpackLoader.prototype.loadModule = function (moduleId) {
             return __awaiter(this, void 0, void 0, function () {
+                var _this = this;
                 var existing, beingLoaded, moduleExports;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -205,7 +253,10 @@ define(["require", "exports", "aurelia-metadata", "aurelia-loader", "aurelia-pal
                             if (beingLoaded) {
                                 return [2 /*return*/, beingLoaded];
                             }
-                            beingLoaded = this._import(moduleId);
+                            beingLoaded = this._import(moduleId).catch(function (e) {
+                                _this.modulesBeingLoaded.delete(moduleId);
+                                throw e;
+                            });
                             this.modulesBeingLoaded.set(moduleId, beingLoaded);
                             return [4 /*yield*/, beingLoaded];
                         case 1:
@@ -232,17 +283,10 @@ define(["require", "exports", "aurelia-metadata", "aurelia-loader", "aurelia-pal
         */
         WebpackLoader.prototype.loadText = function (url) {
             return __awaiter(this, void 0, void 0, function () {
-                var result;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0: return [4 /*yield*/, this.loadModule(url)];
-                        case 1:
-                            result = _a.sent();
-                            if (result instanceof Array && result[0] instanceof Array && result.hasOwnProperty('toString')) {
-                                // we're dealing with a file loaded using the css-loader:
-                                return [2 /*return*/, result.toString()];
-                            }
-                            return [2 /*return*/, result];
+                        case 1: return [2 /*return*/, _a.sent()];
                     }
                 });
             });

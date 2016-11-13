@@ -2,8 +2,37 @@ import {Origin} from 'aurelia-metadata';
 import {Loader, TemplateRegistryEntry, LoaderPlugin} from 'aurelia-loader';
 import {DOM, PLATFORM} from 'aurelia-pal';
 import * as path from 'path';
+import * as fs from 'fs';
+import * as debug from 'debug';
+const log = debug('aurelia-loader-nodejs');
 
 export type LoaderPlugin = { fetch: (address: string) => Promise<TemplateRegistryEntry> | TemplateRegistryEntry };
+
+export function TextHandler(filePath: string) {
+  return new Promise<any>((resolve, reject) => 
+    fs.readFile(filePath, 'utf-8', (err, text) => err ? reject(err) : resolve(text)));
+}
+
+export const Options = {
+  relativeToDir: require.main && require.main.filename && path.dirname(require.main.filename) || undefined
+}
+
+export const ExtensionHandlers = {
+  '.css': TextHandler,
+  '.html': TextHandler
+} as { [extension: string]: (filePath: string) => Promise<any> };
+
+export function advancedRequire(filePath: string) {
+  const extensionsWithHandlers = Object.keys(ExtensionHandlers);
+  for (let extension of extensionsWithHandlers) {
+    if (filePath.endsWith(extension)) {
+      log(`Requiring: ${filePath}`, `Extension handler: ${extension}`);
+      return ExtensionHandlers[extension](filePath);
+    }
+  }
+  log(`Requiring: ${filePath}`);
+  return Promise.resolve(require(filePath));
+}
 
 /**
 * An implementation of the TemplateLoader interface implemented with text-based loading.
@@ -72,9 +101,13 @@ export class WebpackLoader extends Loader {
 
   async _import(moduleId: string) {
     const moduleIdParts = moduleId.split('!');
-    const modulePath = moduleIdParts.splice(moduleIdParts.length - 1, 1)[0];
+    let modulePath = moduleIdParts.splice(moduleIdParts.length - 1, 1)[0];
     const loaderPlugin = moduleIdParts.length === 1 ? moduleIdParts[0] : null;
 
+    if (modulePath[0] === '.' && Options.relativeToDir) {
+      modulePath = path.resolve(Options.relativeToDir, modulePath);
+    }
+    
     if (loaderPlugin) {
       const plugin = this.loaderPlugins[loaderPlugin];
       if (!plugin) {
@@ -84,18 +117,31 @@ export class WebpackLoader extends Loader {
     }
 
     try {
-      return require(modulePath);
-    } catch (_) {
-      // try relative to module's main
+      return await advancedRequire(require.resolve(modulePath));
+    } catch (firstError) {
+      // second try, relative to module's main
       const splitModuleId = modulePath.split('/');
       let rootModuleId = splitModuleId[0];
       if (rootModuleId[0] === '@') {
         rootModuleId = splitModuleId.slice(0, 2).join('/');
       }
-      const rootResolved = require.resolve(rootModuleId);
-      const mainDir = path.dirname(rootResolved);
       const remainingRequest = splitModuleId.slice(rootModuleId[0] === '@' ? 2 : 1).join('/');
-      return require(path.join(mainDir, remainingRequest));
+      try {
+        if (!remainingRequest) {
+          throw firstError;
+        }
+        const rootResolved = require.resolve(rootModuleId);
+        const mainDir = path.dirname(rootResolved);
+        const mergedPath = path.join(mainDir, remainingRequest);
+        return await advancedRequire(mergedPath);
+      } catch (e) {
+        // last try, file is relative, but didn't specify ./ in the path
+        if (!path.isAbsolute(modulePath)) {
+          modulePath = path.resolve(Options.relativeToDir, modulePath);
+          return await advancedRequire(modulePath);
+        }
+        throw firstError;
+      }
     }
   }
 
@@ -159,7 +205,10 @@ export class WebpackLoader extends Loader {
     if (beingLoaded) {
       return beingLoaded;
     }
-    beingLoaded = this._import(moduleId);
+    beingLoaded = this._import(moduleId).catch(e => {
+      this.modulesBeingLoaded.delete(moduleId);
+      throw e;
+    });
     this.modulesBeingLoaded.set(moduleId, beingLoaded);
     const moduleExports = await beingLoaded;
     this.moduleRegistry[moduleId] = ensureOriginOnExports(moduleExports, moduleId);
@@ -182,12 +231,7 @@ export class WebpackLoader extends Loader {
   * @return A Promise for text content.
   */
   async loadText(url: string) {
-    const result = await this.loadModule(url);
-    if (result instanceof Array && result[0] instanceof Array && result.hasOwnProperty('toString')) {
-      // we're dealing with a file loaded using the css-loader:
-      return result.toString();
-    }
-    return result;
+    return await this.loadModule(url);
   }
 
   /**

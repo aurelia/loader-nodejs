@@ -3,6 +3,14 @@ import { Loader, TemplateRegistryEntry, LoaderPlugin } from 'aurelia-loader';
 export declare type LoaderPlugin = {
     fetch: (address: string) => Promise<TemplateRegistryEntry> | TemplateRegistryEntry;
 };
+export declare function TextHandler(filePath: string): Promise<any>;
+export declare const Options: {
+    relativeToDir: string | undefined;
+};
+export declare const ExtensionHandlers: {
+    [extension: string]: (filePath: string) => Promise<any>;
+};
+export declare function advancedRequire(filePath: string): Promise<any>;
 /**
 * An implementation of the TemplateLoader interface implemented with text-based loading.
 */
