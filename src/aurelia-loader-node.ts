@@ -1,6 +1,7 @@
 import {Origin} from 'aurelia-metadata';
 import {Loader, TemplateRegistryEntry, LoaderPlugin} from 'aurelia-loader';
 import {DOM, PLATFORM} from 'aurelia-pal';
+import * as path from 'path';
 
 export type LoaderPlugin = { fetch: (address: string) => Promise<TemplateRegistryEntry> | TemplateRegistryEntry };
 
@@ -82,7 +83,20 @@ export class WebpackLoader extends Loader {
       return await plugin.fetch(modulePath);
     }
 
-    return require(modulePath);
+    try {
+      return require(modulePath);
+    } catch (_) {
+      // try relative to module's main
+      const splitModuleId = modulePath.split('/');
+      let rootModuleId = splitModuleId[0];
+      if (rootModuleId[0] === '@') {
+        rootModuleId = splitModuleId.slice(0, 2).join('/');
+      }
+      const rootResolved = require.resolve(rootModuleId);
+      const mainDir = path.dirname(rootResolved);
+      const remainingRequest = splitModuleId.slice(rootModuleId[0] === '@' ? 2 : 1).join('/');
+      return require(path.join(mainDir, remainingRequest));
+    }
   }
 
   /**
