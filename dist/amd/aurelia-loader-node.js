@@ -38,7 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "aurelia-metadata", "aurelia-loader", "aurelia-pal"], function (require, exports, aurelia_metadata_1, aurelia_loader_1, aurelia_pal_1) {
+define(["require", "exports", "aurelia-metadata", "aurelia-loader", "aurelia-pal", "path"], function (require, exports, aurelia_metadata_1, aurelia_loader_1, aurelia_pal_1, path) {
     "use strict";
     /**
     * An implementation of the TemplateLoader interface implemented with text-based loading.
@@ -111,7 +111,7 @@ define(["require", "exports", "aurelia-metadata", "aurelia-loader", "aurelia-pal
         }
         WebpackLoader.prototype._import = function (moduleId) {
             return __awaiter(this, void 0, void 0, function () {
-                var moduleIdParts, modulePath, loaderPlugin, plugin;
+                var moduleIdParts, modulePath, loaderPlugin, plugin, splitModuleId, rootModuleId, rootResolved, mainDir, remainingRequest;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
@@ -126,7 +126,22 @@ define(["require", "exports", "aurelia-metadata", "aurelia-loader", "aurelia-pal
                             }
                             return [4 /*yield*/, plugin.fetch(modulePath)];
                         case 1: return [2 /*return*/, _a.sent()];
-                        case 2: return [2 /*return*/, require(modulePath)];
+                        case 2:
+                            try {
+                                return [2 /*return*/, require(modulePath)];
+                            }
+                            catch (_) {
+                                splitModuleId = modulePath.split('/');
+                                rootModuleId = splitModuleId[0];
+                                if (rootModuleId[0] === '@') {
+                                    rootModuleId = splitModuleId.slice(0, 2).join('/');
+                                }
+                                rootResolved = require.resolve(rootModuleId);
+                                mainDir = path.dirname(rootResolved);
+                                remainingRequest = splitModuleId.slice(rootModuleId[0] === '@' ? 2 : 1).join('/');
+                                return [2 /*return*/, require(path.join(mainDir, remainingRequest))];
+                            }
+                            return [2 /*return*/];
                     }
                 });
             });

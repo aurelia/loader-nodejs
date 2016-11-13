@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { Origin } from 'aurelia-metadata';
 import { Loader } from 'aurelia-loader';
 import { DOM, PLATFORM } from 'aurelia-pal';
+import * as path from 'path';
 /**
 * An implementation of the TemplateLoader interface implemented with text-based loading.
 */
@@ -75,7 +76,21 @@ export class WebpackLoader extends Loader {
                 }
                 return yield plugin.fetch(modulePath);
             }
-            return require(modulePath);
+            try {
+                return require(modulePath);
+            }
+            catch (_) {
+                // try relative to module's main
+                const splitModuleId = modulePath.split('/');
+                let rootModuleId = splitModuleId[0];
+                if (rootModuleId[0] === '@') {
+                    rootModuleId = splitModuleId.slice(0, 2).join('/');
+                }
+                const rootResolved = require.resolve(rootModuleId);
+                const mainDir = path.dirname(rootResolved);
+                const remainingRequest = splitModuleId.slice(rootModuleId[0] === '@' ? 2 : 1).join('/');
+                return require(path.join(mainDir, remainingRequest));
+            }
         });
     }
     /**
