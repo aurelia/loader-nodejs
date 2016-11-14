@@ -9,7 +9,7 @@
   ],
   "homepage": "http://aurelia.io",
   "bugs": {
-    "url": "https://github.com/aurelia/loader-node/issues"
+    "url": "https://github.com/aurelia/loader-nodejs/issues"
   },
   "license": "MIT",
   "author": "Bazyli Brzóska <bazyli.brzoska@gmail.com> (https://invent.life/)",
