@@ -77,7 +77,7 @@ export function ensureOriginOnExports(moduleExports: any, moduleId: string) {
 /**
 * A default implementation of the Loader abstraction which works with webpack (extended common-js style).
 */
-export class WebpackLoader extends Loader {
+export class NodeJsLoader extends Loader {
   moduleRegistry = Object.create(null);
   loaderPlugins = Object.create(null) as { [name: string]: LoaderPlugin };
   modulesBeingLoaded = new Map<string, Promise<any>>();
@@ -254,4 +254,4 @@ export class WebpackLoader extends Loader {
   }
 }
 
-(PLATFORM as any).Loader = WebpackLoader;
+(PLATFORM as any).Loader = NodeJsLoader;
