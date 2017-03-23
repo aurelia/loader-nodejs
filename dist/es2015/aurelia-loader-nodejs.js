@@ -72,7 +72,7 @@ export function ensureOriginOnExports(moduleExports, moduleId) {
 /**
 * A default implementation of the Loader abstraction which works with webpack (extended common-js style).
 */
-export class WebpackLoader extends Loader {
+export class NodeJsLoader extends Loader {
     constructor() {
         super();
         this.moduleRegistry = Object.create(null);
@@ -235,4 +235,4 @@ export class WebpackLoader extends Loader {
         this.loaderPlugins[pluginName] = implementation;
     }
 }
-PLATFORM.Loader = WebpackLoader;
+PLATFORM.Loader = NodeJsLoader;

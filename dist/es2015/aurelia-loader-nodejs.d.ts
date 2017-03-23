@@ -27,7 +27,7 @@ export declare function ensureOriginOnExports(moduleExports: any, moduleId: stri
 /**
 * A default implementation of the Loader abstraction which works with webpack (extended common-js style).
 */
-export declare class WebpackLoader extends Loader {
+export declare class NodeJsLoader extends Loader {
     moduleRegistry: any;
     loaderPlugins: {
         [name: string]: LoaderPlugin;

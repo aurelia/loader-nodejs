@@ -76,7 +76,7 @@ System.register(["aurelia-metadata", "aurelia-loader", "aurelia-pal", "path", "f
         }
         return moduleExports;
     }
-    var aurelia_metadata_1, aurelia_loader_1, aurelia_pal_1, path, fs, debug, log, Options, ExtensionHandlers, TextTemplateLoader, WebpackLoader;
+    var aurelia_metadata_1, aurelia_loader_1, aurelia_pal_1, path, fs, debug, log, Options, ExtensionHandlers, TextTemplateLoader, NodeJsLoader;
     exports_1("TextHandler", TextHandler);
     exports_1("advancedRequire", advancedRequire);
     exports_1("ensureOriginOnExports", ensureOriginOnExports);
@@ -142,9 +142,9 @@ System.register(["aurelia-metadata", "aurelia-loader", "aurelia-pal", "path", "f
             /**
             * A default implementation of the Loader abstraction which works with webpack (extended common-js style).
             */
-            WebpackLoader = (function (_super) {
-                __extends(WebpackLoader, _super);
-                function WebpackLoader() {
+            NodeJsLoader = (function (_super) {
+                __extends(NodeJsLoader, _super);
+                function NodeJsLoader() {
                     var _this = _super.call(this) || this;
                     _this.moduleRegistry = Object.create(null);
                     _this.loaderPlugins = Object.create(null);
@@ -160,7 +160,7 @@ System.register(["aurelia-metadata", "aurelia-loader", "aurelia-pal", "path", "f
                     aurelia_pal_1.PLATFORM.eachModule = function (callback) { };
                     return _this;
                 }
-                WebpackLoader.prototype._import = function (moduleId) {
+                NodeJsLoader.prototype._import = function (moduleId) {
                     return __awaiter(this, void 0, void 0, function () {
                         var moduleIdParts, modulePath, loaderPlugin, plugin, firstError_1, splitModuleId, rootModuleId, remainingRequest, rootResolved, mainDir, mergedPath, e_1;
                         return __generator(this, function (_a) {
@@ -222,14 +222,14 @@ System.register(["aurelia-metadata", "aurelia-loader", "aurelia-pal", "path", "f
                 * @param id The module id.
                 * @param source The source to map the module to.
                 */
-                WebpackLoader.prototype.map = function (id, source) { };
+                NodeJsLoader.prototype.map = function (id, source) { };
                 /**
                 * Normalizes a module id.
                 * @param moduleId The module id to normalize.
                 * @param relativeTo What the module id should be normalized relative to.
                 * @return The normalized module id.
                 */
-                WebpackLoader.prototype.normalizeSync = function (moduleId, relativeTo) {
+                NodeJsLoader.prototype.normalizeSync = function (moduleId, relativeTo) {
                     return moduleId;
                 };
                 /**
@@ -238,14 +238,14 @@ System.register(["aurelia-metadata", "aurelia-loader", "aurelia-pal", "path", "f
                 * @param relativeTo What the module id should be normalized relative to.
                 * @return The normalized module id.
                 */
-                WebpackLoader.prototype.normalize = function (moduleId, relativeTo) {
+                NodeJsLoader.prototype.normalize = function (moduleId, relativeTo) {
                     return Promise.resolve(moduleId);
                 };
                 /**
                 * Instructs the loader to use a specific TemplateLoader instance for loading templates
                 * @param templateLoader The instance of TemplateLoader to use for loading templates.
                 */
-                WebpackLoader.prototype.useTemplateLoader = function (templateLoader) {
+                NodeJsLoader.prototype.useTemplateLoader = function (templateLoader) {
                     this.templateLoader = templateLoader;
                 };
                 /**
@@ -253,7 +253,7 @@ System.register(["aurelia-metadata", "aurelia-loader", "aurelia-pal", "path", "f
                 * @param ids The set of module ids to load.
                 * @return A Promise for an array of loaded modules.
                 */
-                WebpackLoader.prototype.loadAllModules = function (ids) {
+                NodeJsLoader.prototype.loadAllModules = function (ids) {
                     var _this = this;
                     return Promise.all(ids.map(function (id) { return _this.loadModule(id); }));
                 };
@@ -262,7 +262,7 @@ System.register(["aurelia-metadata", "aurelia-loader", "aurelia-pal", "path", "f
                 * @param moduleId The module ID to load.
                 * @return A Promise for the loaded module.
                 */
-                WebpackLoader.prototype.loadModule = function (moduleId) {
+                NodeJsLoader.prototype.loadModule = function (moduleId) {
                     return __awaiter(this, void 0, void 0, function () {
                         var _this = this;
                         var existing, beingLoaded, moduleExports;
@@ -297,7 +297,7 @@ System.register(["aurelia-metadata", "aurelia-loader", "aurelia-pal", "path", "f
                 * @param url The url of the template to load.
                 * @return A Promise for a TemplateRegistryEntry containing the template.
                 */
-                WebpackLoader.prototype.loadTemplate = function (url) {
+                NodeJsLoader.prototype.loadTemplate = function (url) {
                     return this.loadModule(this.applyPluginToUrl(url, 'template-registry-entry'));
                 };
                 /**
@@ -305,7 +305,7 @@ System.register(["aurelia-metadata", "aurelia-loader", "aurelia-pal", "path", "f
                 * @param url The url of the text file to load.
                 * @return A Promise for text content.
                 */
-                WebpackLoader.prototype.loadText = function (url) {
+                NodeJsLoader.prototype.loadText = function (url) {
                     return __awaiter(this, void 0, void 0, function () {
                         return __generator(this, function (_a) {
                             switch (_a.label) {
@@ -321,7 +321,7 @@ System.register(["aurelia-metadata", "aurelia-loader", "aurelia-pal", "path", "f
                 * @param pluginName The plugin to apply to the module id.
                 * @return The plugin-based module id.
                 */
-                WebpackLoader.prototype.applyPluginToUrl = function (url, pluginName) {
+                NodeJsLoader.prototype.applyPluginToUrl = function (url, pluginName) {
                     return pluginName + "!" + url;
                 };
                 /**
@@ -329,13 +329,13 @@ System.register(["aurelia-metadata", "aurelia-loader", "aurelia-pal", "path", "f
                 * @param pluginName The name of the plugin.
                 * @param implementation The plugin implementation.
                 */
-                WebpackLoader.prototype.addPlugin = function (pluginName, implementation) {
+                NodeJsLoader.prototype.addPlugin = function (pluginName, implementation) {
                     this.loaderPlugins[pluginName] = implementation;
                 };
-                return WebpackLoader;
+                return NodeJsLoader;
             }(aurelia_loader_1.Loader));
-            exports_1("WebpackLoader", WebpackLoader);
-            aurelia_pal_1.PLATFORM.Loader = WebpackLoader;
+            exports_1("NodeJsLoader", NodeJsLoader);
+            aurelia_pal_1.PLATFORM.Loader = NodeJsLoader;
         }
     };
 });
