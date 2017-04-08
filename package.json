@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@types/debug": "^0.0.29",
+    "@types/lodash": "^4.14.62",
     "aurelia-loader": "^1.0.0",
     "aurelia-metadata": "^1.0.2",
     "aurelia-pal": "^1.0.0",
