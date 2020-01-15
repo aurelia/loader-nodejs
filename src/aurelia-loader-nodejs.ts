@@ -1,5 +1,5 @@
 import {Origin} from 'aurelia-metadata';
-import {Loader, TemplateRegistryEntry, LoaderPlugin} from 'aurelia-loader';
+import {Loader, TemplateRegistryEntry} from 'aurelia-loader';
 import {DOM, PLATFORM} from 'aurelia-pal';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -137,7 +137,7 @@ export class NodeJsLoader extends Loader {
       } catch (e) {
         // last try, file is relative, but didn't specify ./ in the path
         if (!path.isAbsolute(modulePath)) {
-          modulePath = path.resolve(Options.relativeToDir, modulePath);
+          modulePath = path.resolve(Options.relativeToDir as string, modulePath);
           return await advancedRequire(modulePath);
         }
         throw firstError;
