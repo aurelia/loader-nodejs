@@ -1,6 +1,6 @@
 {
   "name": "aurelia-loader-nodejs",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "An implementation of Aurelia's loader interface to enable execution under node.",
   "keywords": [
     "aurelia",
@@ -22,10 +22,6 @@
   "scripts": {
     "build:compile": "aurelia-tools ts-build-all --continue-when-failed --clean-before",
     "build": "npm run build:compile",
-    "postbuild": "npm run build:doc",
-    "prebuild:doc": "aurelia-tools doc-build --continue-when-failed",
-    "build:doc": "aurelia-tools doc-shape-defs && aurelia-tools typedoc",
-    "postbuild:doc": "aurelia-tools doc-jsonshape",
     "release": "aurelia-tools changelog"
   },
   "dependencies": {
@@ -41,10 +37,5 @@
     "@types/node": "^6.0.46",
     "aurelia-tools": "github:aurelia/tools#cli",
     "typescript": "^2.1.0"
-  },
-  "aurelia": {
-    "documentation": {
-      "articles": []
-    }
   }
 }

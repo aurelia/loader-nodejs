@@ -1,5 +1,4 @@
-/// <reference types="lodash" />
-import { Loader, TemplateRegistryEntry, LoaderPlugin } from 'aurelia-loader';
+import { Loader, TemplateRegistryEntry } from 'aurelia-loader';
 export declare type LoaderPlugin = {
     fetch: (address: string) => Promise<TemplateRegistryEntry> | TemplateRegistryEntry;
 };
